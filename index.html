@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>장비 대여 신청 가능 여부 확인기</title>
+  <style>
+        @import url('https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css');
+    * {
+      font-family: 'NanumSquare',Arial, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'NanumSquare',Arial, sans-serif;
+      background-color: #eef1f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 50px 20px;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 720px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      max-width: 95%;
+      margin-top: 20px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    input[type="date"] {
+      margin-top: 8px;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px;
+      width: 100%;
+      background-color: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #357ab8;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #222;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: none;
+    }
+
+    #result.animate {
+      transition: opacity 0.6s ease, transform 0.4s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>장비 대여 신청 가능 여부 확인기</h2>
+
+    <label>오늘 날짜:
+      <input type="date" id="today">
+    </label>
+
+    <label>희망 대여일:
+      <input type="date" id="rentalDate">
+    </label>
+
+    <label>희망 반납일:
+      <input type="date" id="returnDate">
+    </label>
+
+    <button onclick="checkEligibility()">신청 가능 여부 확인</button>
+
+    <div id="result"></div>
+    
+    
+  </div>
+
+
+
+  <script>
+    document.getElementById('today').valueAsDate = new Date();
+
+    function checkEligibility() {
+      const today = new Date(document.getElementById('today').value);
+      const rentalDate = new Date(document.getElementById('rentalDate').value);
+      const returnDate = new Date(document.getElementById('returnDate').value);
+      const resultDiv = document.getElementById('result');
+
+      resultDiv.classList.remove('animate');
+
+      setTimeout(() => {
+        let resultText = '';
+
+        if (!rentalDate || !returnDate || rentalDate > returnDate) {
+          resultText = '올바른 날짜를 입력해주세요.';
+        } else {
+          const daysUntilRental = Math.ceil((rentalDate - today) / (1000 * 60 * 60 * 24));
+          const daysUntilReturn = Math.ceil((returnDate - today) / (1000 * 60 * 60 * 24));
+          const rentalDuration = Math.ceil((returnDate - rentalDate) / (1000 * 60 * 60 * 24)) + 1;
+
+          if (daysUntilReturn < 0 || daysUntilRental < 0) {
+            resultText = '⛔ 이미 지난 날짜입니다. 신청 불가';
+          } else if (daysUntilRental < 3) {
+            resultText = '⚠️ 대여일 기준 3일 전까지 신청해야 합니다. 신청 불가';
+          } else if (daysUntilReturn > 10) {
+            resultText = '⚠️ 반납일 기준 10일 전부터만 신청할 수 있습니다. 신청 불가';
+          } else if (rentalDuration > 3) {
+            resultText = '⚠️ 대여 기간은 최대 3일까지 가능합니다. 신청 불가';
+          } else {
+            resultText = '✅ 오늘 날자 기준 신청 가능합니다!';
+          }
+        }
+
+        resultDiv.innerText = resultText;
+        resultDiv.classList.add('animate');
+      }, 10);
+    }
+  </script>
+</body>
+</html>

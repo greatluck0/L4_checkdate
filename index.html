@@ -86,32 +86,95 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    #result {
+      margin-top: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #222;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: none;
+    }
+
+    #result.animate {
+      transition: opacity 0.6s ease, transform 0.4s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #customValidDatesResult {
+  margin-top: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: none;
+}
+
+#customValidDatesResult.animate {
+  transition: opacity 0.6s ease, transform 0.4s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-box {
+  border: 1px solid #ddd;
+  padding: 20px;
+  margin-top: 10px;
+  margin-bottom: 40px;
+  border-radius: 12px;
+  background-color: #fdfdfd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>장비 대여 신청 가능 여부 확인기</h2>
-    
+
+    <div class="section-box">
+    <h2>📌장비 대여 신청 가능 여부 확인기</h2>
+    <p style="text-align: center;">오늘 날짜를 기준으로 대여일과 반납일을 입력하여 대여 신청이 가능한 기간인지 확인합니다.</p><br>
     <label>오늘 날짜:<Br>
       <input type="date" id="today">
     </label>
 
-    <label>희망 대여일:<Br>
+    <label>대여 예정일:<Br>
       <input type="date" id="rentalDate">
     </label>
 
-    <label>희망 반납일:<Br>
+    <label>반납 예정일:<Br>
       <input type="date" id="returnDate">
     </label>
 
     <button onclick="checkEligibility()">신청 가능 여부 확인</button>
 
     <div id="result"></div>
-    
-    
   </div>
 
 
+  <div class="section-box">
+
+    <h2>📌신청 가능 날짜 계산기</h2>
+    <p style="text-align: center;">대여일과 반납일을 입력하여, 신청가능한 기간을 확인합니다.</p><br>
+<label>대여 예정일:<br>
+  <input type="date" id="customRentalDate">
+</label>
+
+<label>반납 예정일:<br>
+  <input type="date" id="customReturnDate">
+</label>
+
+<button onclick="calculateCustomValidDates()">신청 가능한 날짜 보기</button>
+
+
+
+<div id="customValidDatesResult" style="margin-top:20px; text-align:center; font-weight:bold; color:#333;"></div>
+  </div>
+
+</div>
 
   <script>
     document.getElementById('today').valueAsDate = new Date();
@@ -157,5 +220,63 @@
   }, 10);
 }
   </script>
+  
+
+<script>
+function calculateCustomValidDates() {
+  const rentalInput = document.getElementById('customRentalDate');
+  const returnInput = document.getElementById('customReturnDate');
+  const resultDiv = document.getElementById('customValidDatesResult');
+
+  resultDiv.classList.remove('animate');
+  resultDiv.innerHTML = ''; // 초기화
+
+  setTimeout(() => {
+    if (!rentalInput.value || !returnInput.value) {
+      resultDiv.innerText = '❗ 대여 예정일과 반납 예정일을 모두 입력해주세요.';
+    } else {
+      const rentalDate = new Date(rentalInput.value);
+      const returnDate = new Date(returnInput.value);
+
+      if (rentalDate > returnDate) {
+        resultDiv.innerText = '❗ 대여일은 반납일보다 앞서야 합니다.';
+      } else {
+        const rentalDuration = Math.ceil((returnDate - rentalDate) / (1000 * 60 * 60 * 24)) + 1;
+
+        if (rentalDuration > 3) {
+          resultDiv.innerText = '⚠️ 대여 기간은 최대 3일까지 가능합니다. 신청 불가';
+        } else {
+          const startDate = new Date(returnDate);
+          startDate.setDate(startDate.getDate() - 10);
+
+          const endDate = new Date(rentalDate);
+          endDate.setDate(endDate.getDate() - 3);
+
+          if (startDate > endDate) {
+            resultDiv.innerText = '⛔ 신청 가능한 날짜 구간이 없습니다.';
+          } else {
+            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            const dateList = [];
+            const current = new Date(startDate);
+
+            while (current <= endDate) {
+              const yyyy = current.getFullYear();
+              const mm = String(current.getMonth() + 1).padStart(2, '0');
+              const dd = String(current.getDate()).padStart(2, '0');
+              const day = weekdays[current.getDay()];
+              dateList.push(`${yyyy}-${mm}-${dd} (${day}) 09:00 ~ 20:00`);
+              current.setDate(current.getDate() + 1);
+            }
+            resultDiv.innerHTML = '📅 신청 가능한 날짜:<br><br>' + dateList.join('<br>');
+          }
+        }
+      }
+    }
+
+    resultDiv.classList.add('animate');
+  }, 10);
+}
+</script>
+
 </body>
 </html>
